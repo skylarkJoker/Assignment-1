@@ -39,7 +39,15 @@ public class Graph {
 
 	}
 
-	public boolean decisionEdge(Node from, Node to){
+	/**
+	 * Is the edge between these two nodes the result of a decision?
+	 *
+	 * This is the case if the from instruction has two outgoing edges.
+	 * @param from
+	 * @param to
+     * @return
+     */
+	public boolean isDecisionEdge(Node from, Node to){
 		DefaultEdge cfgEdge = graph.getEdge(from,to);
 		if(cfgEdge == null){
 			return false;
@@ -100,11 +108,12 @@ public class Graph {
 
 
 	/**
-	 * Return all transitive successors of m.
+	 * Return all *transitive* successors of m - i.e. any instructions
+	 * that could eventually be reached from m.
 	 * @param m
 	 * @return
      */
-	public Collection<Node> allSuccessors(Node m){
+	public Collection<Node> getTransitiveSuccessors(Node m){
 		return transitiveSuccessors(m, new HashSet<Node>());
 	}
 
