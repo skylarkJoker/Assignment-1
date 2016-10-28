@@ -128,5 +128,21 @@ public class Graph {
 		}
 		return successors;
 	}
+	
+	public Node getLeastCommonAncestor(Node x, Node y) {
+        Node current = x;
+        while(!containsTransitiveSuccessors(current,x,y)){
+            current = getPredecessors(current).iterator().next();
+        }
+        return current;
+    }
+
+	private boolean containsTransitiveSuccessors(Node x, Node x2, Node y) {
+		Collection<Node> transitiveSuccessors = getTransitiveSuccessors(x);
+        if(transitiveSuccessors.contains(x2) && transitiveSuccessors.contains(y))
+        	return true;
+        else
+        	return false;
+	}
 
 }

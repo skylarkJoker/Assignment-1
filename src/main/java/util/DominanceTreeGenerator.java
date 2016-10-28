@@ -36,6 +36,24 @@ public class DominanceTreeGenerator {
 
         postDominate = calculateDominance(reverseGraph(cfg),new HashMap<Node,Collection<Node>>());
     }
+    
+    /**
+     * In this constructor, we take a given CFG and call the routines necessary
+     * to calculate the Map from nodes to their respective dominators and post-dominators.
+     *
+     * @param methodNode
+     */
+    public DominanceTreeGenerator(Graph cfg) throws IOException, AnalyzerException {
+        this.cfg = cfg;
+
+        //The CFG has been extracted. Now we calculate the dominance relations from the CFG.
+
+        dominate = calculateDominance(cfg, new HashMap<Node,Collection<Node>>());
+
+        //To calculate the post-dominance, we simply reverse the control flow graph and repeat the exercise.
+
+        postDominate = calculateDominance(reverseGraph(cfg),new HashMap<Node,Collection<Node>>());
+    }
 
 
     /**
