@@ -1,3 +1,5 @@
+import org.junit.Before;
+import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -5,12 +7,15 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 
+import util.DominanceTreeGenerator;
 import util.cfg.CFGExtractor;
 import util.cfg.Graph;
+import util.cfg.Node;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This should be the entry-point of your programming submission.
@@ -79,6 +84,16 @@ public class AssignmentSubmission implements Slicer {
     @Override
     public boolean isDataDepence(AbstractInsnNode a, AbstractInsnNode b) {
         //REPLACE THIS METHOD BODY WITH YOUR OWN CODE
+    	//new graph
+    	try{
+    		Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
+    	}
+    	catch(Exception e)
+    	{
+    		e.printStackTrace();
+    	}
+    	
+    	
         return false;
     }
 
@@ -93,8 +108,37 @@ public class AssignmentSubmission implements Slicer {
      * @param b
      * @return
      */
+    
+
     @Override
     public boolean isControlDependentUpon(AbstractInsnNode a, AbstractInsnNode b) {
+    	Node aa = new Node(a);
+    	Node bb = new Node(b);
+    	
+    	try
+    	{
+    		//new graph
+        	Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
+        	
+        	//Create dominance graphs
+        	DominanceTreeGenerator dom = new DominanceTreeGenerator(myAwesomeGraph);
+        	
+        	//Oh boy more graphs! post dominator graph
+        	Graph postDom = dom.postDominatorTree();
+        	
+        	//Lets get see what the children are up to
+        	Set<Node> n = postDom.getSuccessors(aa);
+        	
+        	if(n.contains(aa))
+        	{
+        		return postDom.isDecisionEdge(bb, aa);
+        	}
+    	}
+    	catch(Exception e){
+    		System.out.print("Welp...");
+    		e.printStackTrace();
+    	}
+    	
         return false;
     }
 
@@ -110,3 +154,6 @@ public class AssignmentSubmission implements Slicer {
         return null;
     }
 }
+
+
+

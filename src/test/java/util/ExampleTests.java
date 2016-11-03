@@ -60,7 +60,7 @@ public class ExampleTests {
         }
     }
 
-    @Test
+    //@Test
     public void computeAndPrintNumberOfVariableUsesPerInstruction()throws IOException {
         ClassNode cn = new ClassNode(Opcodes.ASM4);
         InputStream in=CFGExtractor.class.getResourceAsStream(subject);
