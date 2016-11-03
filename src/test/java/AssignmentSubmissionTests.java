@@ -2,7 +2,9 @@
 
 import static org.junit.Assert.*;
 
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,32 +23,35 @@ public class AssignmentSubmissionTests {
 	
 	@Before
 	public void setUp() throws Exception {
-		testSubmission = new AssignmentSubmission("/java/lang/String.class","toCharArray()[C");
+		testSubmission = new AssignmentSubmission("/java/lang/String.class","trim()Ljava/lang/String;");
 		targetClass = AssignmentSubmission.findClassNode("/java/lang/String.class");
-		targetMethod = AssignmentSubmission.findMethodNode(targetClass, "toCharArray()[C");
+		targetMethod = AssignmentSubmission.findMethodNode(targetClass, "trim()Ljava/lang/String;");
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 
-	@Test
+	//@Test
 	public void testControlDependence() {
-		AbstractInsnNode a, b;
-		
-		for(int i = 0; i < testSubmission.targetMethod.instructions.size(); i ++){
-			for(int j = 0; j < testSubmission.targetMethod.instructions.size(); j ++){
-				a = testSubmission.targetMethod.instructions.get(i);
-				b = testSubmission.targetMethod.instructions.get(j);
+	
+			AbstractInsnNode a, b;
+		a = testSubmission.targetMethod.instructions.get(15);
+		b = testSubmission.targetMethod.instructions.get(20);
 				
-				Node aa = new Node(a);
-				Node bb = new Node(b);
+		System.out.println(testSubmission.isControlDependentUpon(a, b));	
+	}
+	
+	@Test
+	public void testDataDependence(){
+	
+
+		AbstractInsnNode a, b;	
+		a = testSubmission.targetMethod.instructions.get(1);
+		b = testSubmission.targetMethod.instructions.get(3);
 				
-				System.out.println(aa.toString()+"\t"+ bb.toString());
-				System.out.println(testSubmission.isControlDependentUpon(a, b));
-			}
-		}
-				
+		System.out.println(testSubmission.isDataDepence(a, b));
+
 	}
 
 }

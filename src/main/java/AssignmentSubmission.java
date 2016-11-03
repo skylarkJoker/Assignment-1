@@ -7,6 +7,8 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 
+import br.usp.each.saeg.asm.defuse.Variable;
+import util.DataFlowAnalysis;
 import util.DominanceTreeGenerator;
 import util.cfg.CFGExtractor;
 import util.cfg.Graph;
@@ -14,6 +16,7 @@ import util.cfg.Node;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -84,9 +87,22 @@ public class AssignmentSubmission implements Slicer {
     @Override
     public boolean isDataDepence(AbstractInsnNode a, AbstractInsnNode b) {
         //REPLACE THIS METHOD BODY WITH YOUR OWN CODE
-    	//new graph
     	try{
-    		Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
+    		
+    		//Get a set of all variables defined by a
+    		Collection db = DataFlowAnalysis.definedBy(targetClassNode.name, targetMethod, a);
+    		
+    		//get a set of varibles used by b
+    		Collection us = DataFlowAnalysis.usedBy(targetClassNode.name, targetMethod, b);
+    		
+    		System.out.println(db.size());
+    		
+    		for(Variable v : (Collection<Variable>)db){
+    			    			
+    			if(us.contains(v)){//here we check to see if any of the variables defined by a are used by b    				
+    				return true; 
+    			}
+    		}
     	}
     	catch(Exception e)
     	{
@@ -115,24 +131,36 @@ public class AssignmentSubmission implements Slicer {
     	Node aa = new Node(a);
     	Node bb = new Node(b);
     	
+    	//create the start node for the augmented graph
+    	Node start = new Node("start");
+    	
     	try
     	{
-    		//new graph
+    		//new control flow graph!
         	Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
+        	
+        	//add that start node and point it to entry and exit nodes(Augmented graph)
+        	myAwesomeGraph.addNode(start);
+        	myAwesomeGraph.addEdge(start, myAwesomeGraph.getEntry());
+        	myAwesomeGraph.addEdge(start, myAwesomeGraph.getExit());
         	
         	//Create dominance graphs
         	DominanceTreeGenerator dom = new DominanceTreeGenerator(myAwesomeGraph);
         	
-        	//Oh boy more graphs! post dominator graph
+        	
+        	//Oh boy more graphs! get post dominator graph
         	Graph postDom = dom.postDominatorTree();
+        	//System.out.println(postDom);
         	
         	//Lets get see what the children are up to
-        	Set<Node> n = postDom.getSuccessors(aa);
-        	
-        	if(n.contains(aa))
-        	{
-        		return postDom.isDecisionEdge(bb, aa);
+        	if(postDom.getSuccessors(aa).size() > 1){
+        		System.out.println("Node: " + aa.toString() + "\n Successors: ");
+        		for(Node n : postDom.getSuccessors(aa)){
+        			System.out.println(n.toString());
+        		}
         	}
+        	
+        	
     	}
     	catch(Exception e){
     		System.out.print("Welp...");
