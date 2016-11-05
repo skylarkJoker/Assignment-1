@@ -17,6 +17,7 @@ import util.cfg.Node;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -89,13 +90,21 @@ public class AssignmentSubmission implements Slicer {
         //REPLACE THIS METHOD BODY WITH YOUR OWN CODE
     	Node aa = new Node(a);
     	Node bb = new Node(b);
+    	
+    	System.out.println("Node A(Instruction)"+aa.toString());
+    	System.out.println("Node B(Instruction)"+bb.toString());
+    	
   
     	try{
     		//new control flow graph!
         	Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
+        	DominanceTreeGenerator dom = new DominanceTreeGenerator(myAwesomeGraph);
         	
-        	//get successors so they can be checked for variable definitions
-        	Set<Node> s = myAwesomeGraph.getSuccessors(aa);
+        	Graph dominanceGraph = dom.dominatorTree();
+        	//System .out.println(dominanceGraph);
+        	
+        	
+        	System.out.println(getMeMyNode(dominanceGraph, aa, bb));
         	
     		//Get a set of all variables defined by a
     		Collection<Variable> db = DataFlowAnalysis.definedBy(targetClassNode.name, targetMethod, a);
@@ -104,13 +113,7 @@ public class AssignmentSubmission implements Slicer {
     		Collection<Variable> us = DataFlowAnalysis.usedBy(targetClassNode.name, targetMethod, b);
     		
     		for(Variable v : (Collection<Variable>)db){
-    			//here we check to see if any of the variables defined by a are used by b
-    			if(us.contains(v)){
-    				System.out.println("possible data dependency");
-    				System.out.println(aa.toString()+">>>>>"+bb.toString()+"\t\t"+v.toString()+"\n");
-    				
-    				
-    			}
+    			
     		}
     	}
     	catch(Exception e)
@@ -137,6 +140,8 @@ public class AssignmentSubmission implements Slicer {
 
     @Override
     public boolean isControlDependentUpon(AbstractInsnNode a, AbstractInsnNode b) {
+    	
+    	//Instantiate nodes from abstract nodes(also makes it easier to understand what)
     	Node aa = new Node(a);
     	Node bb = new Node(b);
     	
@@ -156,35 +161,72 @@ public class AssignmentSubmission implements Slicer {
         	//System.out.println("****************CFG******************");
         	//System.out.println(myAwesomeGraph);
         	
+        	
         	//Create dominance graphs
         	DominanceTreeGenerator dom = new DominanceTreeGenerator(myAwesomeGraph);
         	
         	
-        	//Oh boy more graphs! get post dominator graph        	
+        	//Oh boy more graphs! get post dominance graph        	
         	Graph postDom = dom.postDominatorTree();
         	//System.out.println("****************PDT******************");
         	//System.out.println(postDom);
         	
+        	
+        	//here we grab the least common ancestor(lca) of a and b
         	Node lca = postDom.getLeastCommonAncestor(aa, bb);
         	
-        	System.out.println(aa.toString());
-        	System.out.println(bb.toString());
+        	//
+        	if(!myAwesomeGraph.isDecisionEdge(aa, bb) || postDom.getSuccessors(aa).contains(bb)){
+        		return false;
+        	}
         	
-        	System.out.println(lca.toString());
+        	
+        	System.out.println("Node A(Instruction)"+aa.toString());
+        	System.out.println("Node B(Instruction)"+bb.toString());
+        	
+        	System.out.println("The least common ancestor of (a,b) is "+lca.toString()+"\n\n");
+        	
+        	//get the successors to lca. gonna cycle through them
+        	Set<Node> s = postDom.getSuccessors(lca);
         	
         	
-        	System.out.println("****************TRAN******************");
-        	Collection<Node> b2lca = postDom.getTransitiveSuccessors(lca);
+        	Collection<Node> c = null;
         	
-        	for(Node n : b2lca){
-        		if(b2lca.contains(bb)){
-        			postDom.getPredecessors(bb);
+        	
+        	//to select nodes from b to least common ancestor(lca), determine which branch from lca reaches b
+        	for(Node n : s){
+        		c = postDom.getTransitiveSuccessors(n);
+        		if(c.contains(bb)){//when we get the branch break
+        			c.add(n);
+        			break;
         		}
         	}
         	
-        
+        	//If the least common ancestor is a, include the ancestor itself in the
+        	//selection.
+        	if(lca.equals(aa)){
+        		c.add(lca);
+        	}
+        	
+        	//Create container for control dependence graph
+        	Graph ctrlDepGraph = new Graph();
+        	
+        	//Add node a
+        	ctrlDepGraph.addNode(aa);
+        	
+        	for(Node n : c){
+        		//Now we create edges from a to each node in our collection
+        		ctrlDepGraph.addNode(n);
+        		ctrlDepGraph.addEdge(aa, n);
+        	}
+        	
+        	//System.out.println("****************CDG For (a,b)******************");
+        	System.out.println(ctrlDepGraph+"\n\n");
         	
         	
+        	if(ctrlDepGraph.getSuccessors(aa).contains(bb)){
+        		return true;//yay b is control denpendent on a! That's a good thing right?
+        	}
     	}
     	catch(Exception e){
     		System.out.print("Welp...");
@@ -204,6 +246,21 @@ public class AssignmentSubmission implements Slicer {
     public List<AbstractInsnNode> backwardSlice(AbstractInsnNode criterion) {
         //REPLACE THIS METHOD BODY WITH YOUR OWN CODE
         return null;
+    }
+    
+    private Collection<Node> getMeMyNode(Graph g, Node a, Node b){
+    	Node temp = b;
+    	Collection<Node> s = Collections.emptySet();
+    	
+    	while(!temp.equals(a)){
+    		for(Node n : g.getPredecessors(temp)){
+    			System.out.println(n.toString());
+    			s.add(n);
+    			temp = n;
+    		}
+    	}
+    	
+    	return s;
     }
 }
 
