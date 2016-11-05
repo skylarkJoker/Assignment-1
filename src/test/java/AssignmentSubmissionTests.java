@@ -32,26 +32,25 @@ public class AssignmentSubmissionTests {
 	public void tearDown() throws Exception {
 	}
 
-	//@Test
+	@Test
 	public void testControlDependence() {
 	
-			AbstractInsnNode a, b;
-		a = testSubmission.targetMethod.instructions.get(15);
-		b = testSubmission.targetMethod.instructions.get(20);
+		AbstractInsnNode a, b;
+		a = testSubmission.targetMethod.instructions.get(13);
+		b = testSubmission.targetMethod.instructions.get(14);
 				
-		System.out.println(testSubmission.isControlDependentUpon(a, b));	
+		testSubmission.isControlDependentUpon(a, b);
 	}
 	
-	@Test
+	//@Test
 	public void testDataDependence(){
-	
-
-		AbstractInsnNode a, b;	
-		a = testSubmission.targetMethod.instructions.get(1);
-		b = testSubmission.targetMethod.instructions.get(3);
-				
-		System.out.println(testSubmission.isDataDepence(a, b));
-
+		
+		AbstractInsnNode a, b;
+		for(int i =0; i<testSubmission.targetMethod.instructions.size()-1;i++){
+			a = testSubmission.targetMethod.instructions.get(0);
+			b = testSubmission.targetMethod.instructions.get(i);
+			testSubmission.isDataDepence(a, b);
+		}
 	}
 
 }

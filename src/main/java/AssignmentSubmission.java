@@ -87,20 +87,29 @@ public class AssignmentSubmission implements Slicer {
     @Override
     public boolean isDataDepence(AbstractInsnNode a, AbstractInsnNode b) {
         //REPLACE THIS METHOD BODY WITH YOUR OWN CODE
+    	Node aa = new Node(a);
+    	Node bb = new Node(b);
+  
     	try{
-    		
+    		//new control flow graph!
+        	Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
+        	
+        	//get successors so they can be checked for variable definitions
+        	Set<Node> s = myAwesomeGraph.getSuccessors(aa);
+        	
     		//Get a set of all variables defined by a
-    		Collection db = DataFlowAnalysis.definedBy(targetClassNode.name, targetMethod, a);
+    		Collection<Variable> db = DataFlowAnalysis.definedBy(targetClassNode.name, targetMethod, a);
     		
-    		//get a set of varibles used by b
-    		Collection us = DataFlowAnalysis.usedBy(targetClassNode.name, targetMethod, b);
-    		
-    		System.out.println(db.size());
+    		//get a set of variables used by b
+    		Collection<Variable> us = DataFlowAnalysis.usedBy(targetClassNode.name, targetMethod, b);
     		
     		for(Variable v : (Collection<Variable>)db){
-    			    			
-    			if(us.contains(v)){//here we check to see if any of the variables defined by a are used by b    				
-    				return true; 
+    			//here we check to see if any of the variables defined by a are used by b
+    			if(us.contains(v)){
+    				System.out.println("possible data dependency");
+    				System.out.println(aa.toString()+">>>>>"+bb.toString()+"\t\t"+v.toString()+"\n");
+    				
+    				
     			}
     		}
     	}
@@ -139,26 +148,41 @@ public class AssignmentSubmission implements Slicer {
     		//new control flow graph!
         	Graph myAwesomeGraph = CFGExtractor.getCFG(targetClassNode.name, targetMethod);
         	
+          	
         	//add that start node and point it to entry and exit nodes(Augmented graph)
         	myAwesomeGraph.addNode(start);
         	myAwesomeGraph.addEdge(start, myAwesomeGraph.getEntry());
         	myAwesomeGraph.addEdge(start, myAwesomeGraph.getExit());
+        	//System.out.println("****************CFG******************");
+        	//System.out.println(myAwesomeGraph);
         	
         	//Create dominance graphs
         	DominanceTreeGenerator dom = new DominanceTreeGenerator(myAwesomeGraph);
         	
         	
-        	//Oh boy more graphs! get post dominator graph
+        	//Oh boy more graphs! get post dominator graph        	
         	Graph postDom = dom.postDominatorTree();
+        	//System.out.println("****************PDT******************");
         	//System.out.println(postDom);
         	
-        	//Lets get see what the children are up to
-        	if(postDom.getSuccessors(aa).size() > 1){
-        		System.out.println("Node: " + aa.toString() + "\n Successors: ");
-        		for(Node n : postDom.getSuccessors(aa)){
-        			System.out.println(n.toString());
+        	Node lca = postDom.getLeastCommonAncestor(aa, bb);
+        	
+        	System.out.println(aa.toString());
+        	System.out.println(bb.toString());
+        	
+        	System.out.println(lca.toString());
+        	
+        	
+        	System.out.println("****************TRAN******************");
+        	Collection<Node> b2lca = postDom.getTransitiveSuccessors(lca);
+        	
+        	for(Node n : b2lca){
+        		if(b2lca.contains(bb)){
+        			postDom.getPredecessors(bb);
         		}
         	}
+        	
+        
         	
         	
     	}
