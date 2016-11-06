@@ -32,12 +32,13 @@ public class AssignmentSubmissionTests {
 	public void tearDown() throws Exception {
 	}
 
-	//@Test
+	@Test
 	public void testControlDependence() {
 		//13, 14
 		AbstractInsnNode a, b;
-		a = testSubmission.targetMethod.instructions.get(13);
-		b = testSubmission.targetMethod.instructions.get(14);
+		
+		a = testSubmission.targetMethod.instructions.get(14);
+		b = testSubmission.targetMethod.instructions.get(13);
 				
 		System.out.println(testSubmission.isControlDependentUpon(a, b));
 	}
@@ -48,9 +49,9 @@ public class AssignmentSubmissionTests {
 		AbstractInsnNode a, b;
 		
 		a = testSubmission.targetMethod.instructions.get(3);
-		b = testSubmission.targetMethod.instructions.get(19);
+		b = testSubmission.targetMethod.instructions.get(25);
 		
-			testSubmission.isDataDepence(a, b);
+		System.out.println(testSubmission.isDataDepence(a, b));
 		
 	}
 
